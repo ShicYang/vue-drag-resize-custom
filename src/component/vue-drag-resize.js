@@ -19,7 +19,7 @@ function addEvents(events) {
 
 function removeEvents(events) {
     events.forEach((cb, eventName) => {
-        document.documentElement.removeEventListener(eventName.cb);
+        document.documentElement.removeEventListener(eventName, cb);
     });
 }
 
@@ -55,11 +55,11 @@ export default {
         },
         preventActiveBehavior: {
             type: Boolean,
-            default: false
+            default: false,
         },
         isDraggable: {
             type: Boolean,
-            default: true
+            default: true,
         },
         isResizable: {
             type: Boolean,
@@ -71,13 +71,13 @@ export default {
         },
         parentLimitation: {
             type: Boolean,
-            default: false
+            default: false,
         },
         snapToGrid: {
             type: Boolean,
-            default: false
+            default: false,
         },
-        gridx: {
+        gridX: {
             type: Number,
             default: 50,
             validator(val) {
@@ -96,14 +96,14 @@ export default {
             default: 0,
             validator(val) {
                 return val >= 0;
-            }
+            },
         },
         parentH: {
             type: Number,
             default: 0,
             validator(val) {
                 return val >= 0;
-            }
+            },
         },
         w: {
             type: [String, Number],
@@ -165,7 +165,7 @@ export default {
         sticks: {
             type: Array,
             default() {
-                return ['t1', 'tm', 'tr', 'mr', 'br', 'bm', 'bl', 'ml'];
+                return ['tl', 'tm', 'tr', 'mr', 'br', 'bm', 'bl', 'ml'];
             },
         },
         axis: {
@@ -217,18 +217,18 @@ export default {
 
         this.parentElement = this.$el.parentNode;
         this.parentWidth = this.parentW ? this.parentW : this.parentElement.clientWidth;
-        // this.parentHeight = this.parentH ? this.parentElement.clientHeight:
+        this.parentHeight = this.parentH ? this.parentH : this.parentElement.clientHeight;
 
         this.left = this.x;
         this.top = this.y;
 
         // 元素右边到屏幕右边的距离
         this.right =
-            this.parentHeight -
+            this.parentWidth -
             (this.w === 'auto' ? this.$refs.container.scrollWidth : this.w) -
             this.left;
 
-        // 元素下边到屏幕底部的距离
+        // 元素下边到屏幕底边的距离
         this.bottom =
             this.parentHeight -
             (this.h === 'auto' ? this.$refs.container.scrollHeight : this.h) -
@@ -240,7 +240,7 @@ export default {
             ['mouseleave', this.up],
             ['mousedown', this.deselect],
             ['touchmove', this.move],
-            ['touched', this.up],
+            ['touchend', this.up],
             ['touchcancel', this.up],
             ['touchstart', this.up],
         ]);
@@ -294,7 +294,7 @@ export default {
             this.bodyDown({ pageX: this.left, pageY: this.top });
             this.bodyMove({ x: deltaX, y: deltaY });
 
-            // this.bodyUp(
+            this.bodyUp();
             // this.$nextTick(() => {
             // });
         },
@@ -313,8 +313,8 @@ export default {
 
             ev.stopPropagation();
 
-            const pageX = typeof ev.pageX !== 'undefined' ? ev.pageX : ev.touch[0].pageX;
-            const pageY = typeof ev.pageY !== 'undefined' ? ev.pageY : ev.touch[0].pageY;
+            const pageX = typeof ev.pageX !== 'undefined' ? ev.pageX : ev.touches[0].pageX;
+            const pageY = typeof ev.pageY !== 'undefined' ? ev.pageY : ev.touches[0].pageY;
 
             const { dimensionsBeforeMove } = this;
 
@@ -482,20 +482,20 @@ export default {
         },
 
         // stickDown(stick, ev, force = false) {
-        //     //(!this.isResizable || !this.active) && !force
+        //     // (!this.isResizable || !this.active) && !force
         //     if ((!this.isResizable) && !force) {
         //         return;
         //     }
-        //
+
         //     this.stickDrag = true;
-        //
-        //     const pointerX = typeof ev.pageX !== 'undefined' ? ev.pageX: ev.touches[0].pageX;
+
+        //     const pointerX = typeof ev.pageX !== 'undefined' ? ev.pageX : ev.touches[0].pageX;
         //     const pointerY = typeof ev.pageY !== 'undefined' ? ev.pageY : ev.touches[0].pageY;
-        //
+
         //     this.saveDimensionsBeforeMove({ pointerX, pointerY });
-        //
+
         //     this.currentStick = stick;
-        //
+
         //     this.limits = this.calcResizeLimits();
         // },
 
@@ -514,7 +514,7 @@ export default {
             this.aspectFactor = this.width / this.height;
         },
 
-        stickDown(delta) {
+        stickMove(delta) {
             const {
                 currentStick,
                 dimensionsBeforeMove,
@@ -648,8 +648,8 @@ export default {
             const limits = {
                 left: { min: parentLim, max: left + (width - minWidth) },
                 right: { min: parentLim, max: right + (width - minWidth) },
-                top: { min: parentLim, max: top + (height - minWidth) },
-                bottom: { min: parentLim, max: bottom + (width - minWidth) },
+                top: { min: parentLim, max: top + (height - minHeight) },
+                bottom: { min: parentLim, max: bottom + (height - minHeight) },
             };
 
             if (this.aspectRatio) {
@@ -712,10 +712,10 @@ export default {
             const { limits } = this;
             let { newRight, newLeft, newBottom, newTop } = rect;
 
-            newLeft = this.sideCorrectionBtLimit(limits.left, newLeft);
-            newRight = this.sideCorrectionBtLimit(limits.right, newRight);
-            newTop = this.sideCorrectionBtLimit(limits.top, newTop);
-            newBottom = this.sideCorrectionBtLimit(limits.bottom, newBottom);
+            newLeft = this.sideCorrectionByLimit(limits.left, newLeft);
+            newRight = this.sideCorrectionByLimit(limits.right, newRight);
+            newTop = this.sideCorrectionByLimit(limits.top, newTop);
+            newBottom = this.sideCorrectionByLimit(limits.bottom, newBottom);
 
             return {
                 newLeft,
@@ -751,7 +751,7 @@ export default {
             } else if (newWidth / newHeight > aspectFactor) {
                 newWidth = aspectFactor * newHeight;
 
-                if (currentStick[1] === '1') {
+                if (currentStick[1] === 'l') {
                     newLeft = parentWidth - newRight - newWidth;
                 } else {
                     newRight = parentWidth - newLeft - newWidth;
@@ -775,7 +775,7 @@ export default {
             return {
                 top: this.top + 'px',
                 left: this.left + 'px',
-                zIndex: this.zIndex
+                zIndex: this.zIndex,
             };
         },
 
@@ -811,7 +811,7 @@ export default {
                 left: Math.round(this.left),
                 top: Math.round(this.top),
                 width: Math.round(this.width),
-                height: Math.round(this.height)
+                height: Math.round(this.height),
             };
         },
     },
@@ -840,6 +840,88 @@ export default {
                 }
             },
         },
+        // x: {
+        //     handler(newVal, oldVal) {
+        //         if (this.stickDrag || this.bodyDrag || newVal === this.left) {
+        //             return;
+        //         }
+
+        //         const delta = oldVal - newVal;
+
+        //         this.bodyDown({ pageX: this.left, pageY: this.top });
+        //         this.bodyMove({ x: delta, y: 0 });
+
+        //         this.$nextTick(() => {
+        //             this.bodyUp();
+        //         });
+        //     },
+        // },
+
+        // y: {
+        //     handler(newVal, oldVal) {
+        //         if (this.stickDrag || this.bodyDrag || newVal === this.top) {
+        //             return;
+        //         }
+
+        //         const delta = oldVal - newVal;
+
+        //         this.bodyDown({ pageX: this.left, pageY: this.top });
+        //         this.bodyMove({ x: 0, y: delta });
+
+        //         this.$nextTick(() => {
+        //             this.bodyUp();
+        //         });
+        //     },
+        // },
+
+        // w: {
+        //     handler(newVal, oldVal) {
+        //         console.log('width:', newVal);
+        //         // debugger
+        //         //  || this.bodyDrag
+        //         if (this.stickDrag || newVal === this.width) {
+        //             return;
+        //         }
+
+        //         const stick = 'mr';
+        //         const delta = oldVal - newVal;
+
+        //         this.stickDown(
+        //             stick,
+        //             { pageX: this.right, pageY: this.top + this.height / 2 },
+        //             true
+        //         );
+        //         this.stickMove({ x: delta, y: 0 });
+
+        //         this.$nextTick(() => {
+        //             this.stickUp();
+        //         });
+        //     },
+        // },
+
+        // h: {
+        //     handler(newVal, oldVal) {
+        //         console.log('height:', newVal);
+        //         // || this.bodyDrag 
+        //         if (this.stickDrag || newVal === this.height) {
+        //             return;
+        //         }
+
+        //         const stick = 'bm';
+        //         const delta = oldVal - newVal;
+
+        //         this.stickDown(
+        //             stick,
+        //             { pageX: this.left + this.width / 2, pageY: this.bottom },
+        //             true
+        //         );
+        //         this.stickMove({ x: 0, y: delta });
+
+        //         this.$nextTick(() => {
+        //             this.stickUp();
+        //         });
+        //     },
+        // },
 
         parentW(val) {
             this.right = val - this.width - this.left;
