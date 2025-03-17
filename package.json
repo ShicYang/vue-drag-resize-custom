@@ -1,6 +1,6 @@
 {
     "name": "vue-drag-resize-custom",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Vue Component for resize and drag elements",
     "author": "scyang",
     "main": "dist/index.js",
