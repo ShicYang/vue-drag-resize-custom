@@ -12,12 +12,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/kirillmurashov/vue-drag-resize.git"
+        "url": "https://github.com/ShicYang/vue-drag-resize-custom.git"
     },
     "bugs": {
-        "url": "https://github.com/kirillmurashov/vue-drag-resize/issues"
+        "url": "https://github.com/ShicYang/vue-drag-resize-custom/issues"
     },
-    "homepage": "https://github.com/kirillmurashov/vue-drag-resize.git",
+    "homepage": "https://github.com/ShicYang/vue-drag-resize-custom.git",
     "license": "MIT",
     "devDependencies": {
         "@babel/core": "^7.12.1",
