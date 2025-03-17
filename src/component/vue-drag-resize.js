@@ -481,23 +481,23 @@ export default {
             };
         },
 
-        // stickDown(stick, ev, force = false) {
-        //     // (!this.isResizable || !this.active) && !force
-        //     if ((!this.isResizable) && !force) {
-        //         return;
-        //     }
+        stickDown(stick, ev, force = false) {
+            // (!this.isResizable || !this.active) && !force
+            if ((!this.isResizable) && !force) {
+                return;
+            }
 
-        //     this.stickDrag = true;
+            this.stickDrag = true;
 
-        //     const pointerX = typeof ev.pageX !== 'undefined' ? ev.pageX : ev.touches[0].pageX;
-        //     const pointerY = typeof ev.pageY !== 'undefined' ? ev.pageY : ev.touches[0].pageY;
+            const pointerX = typeof ev.pageX !== 'undefined' ? ev.pageX : ev.touches[0].pageX;
+            const pointerY = typeof ev.pageY !== 'undefined' ? ev.pageY : ev.touches[0].pageY;
 
-        //     this.saveDimensionsBeforeMove({ pointerX, pointerY });
+            this.saveDimensionsBeforeMove({ pointerX, pointerY });
 
-        //     this.currentStick = stick;
+            this.currentStick = stick;
 
-        //     this.limits = this.calcResizeLimits();
-        // },
+            this.limits = this.calcResizeLimits();
+        },
 
         saveDimensionsBeforeMove({ pointerX, pointerY }) {
             this.dimensionsBeforeMove.pointerX = pointerX;
