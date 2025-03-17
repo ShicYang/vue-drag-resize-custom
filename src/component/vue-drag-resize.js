@@ -696,7 +696,7 @@ export default {
             return limits;
         },
 
-        sideCorrectionBtLimit(limit, current) {
+        sideCorrectionByLimit(limit, current) {
             let value = current;
 
             if (limit.min !== null && current < limit.min) {
